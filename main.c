@@ -13,18 +13,23 @@ create_table();
 insert();
 select();
 update();
-delete ();
+delete();
+json();
 
 int main(int argc, char *argv[])
 {
-  connect();
-  create_table();
-  insert();
-  select();
-  update();
-  delete ();
+  // connect();
+  // create_table();
+  // insert();
+  // select();
+  // update();
+  // delete ();
+
+  json();
   return 0;
 }
+
+
 
 static int callback(void *NotUsed, int argc, char **argv, char **azColName)
 {
@@ -37,6 +42,61 @@ static int callback(void *NotUsed, int argc, char **argv, char **azColName)
   return 0;
 }
 
+json(){
+  sqlite3 *db;
+  char *zErrMsg = 0;
+  int rc;
+  char *sql;
+
+  rc = sqlite3_open("test.db", &db);
+  int retval = 0;
+  if (rc)
+  {
+    fprintf(stdout, "Can't open database: %s\n", sqlite3_errmsg(db));
+    retval = 1;
+  }
+  else
+  {
+    fprintf(stdout, "Opened database successfully\n");
+  }
+
+    /* Create SQL statement */
+  sql = "CREATE TABLE IF NOT EXISTS JSONS("
+        "ID INT PRIMARY KEY     NOT NULL,"
+        "JSON           TEXT    NOT NULL);";
+
+  /* Execute SQL statement */
+  rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
+  if (rc != SQLITE_OK)
+  {
+    fprintf(stderr, "SQL error: %s\n", zErrMsg);
+    sqlite3_free(zErrMsg);
+    retval = 1;
+  }
+  else
+  {
+    fprintf(stdout, "Table created successfully\n");
+  }
+
+ /* Create SQL statement */
+  sql = "INSERT INTO JSONS (ID,JSON) "
+        "VALUES (1, '{\"id\":1}');";
+  /* Execute SQL statement */
+  rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
+  if (rc != SQLITE_OK)
+  {
+    fprintf(stderr, "SQL error: %s\n", zErrMsg);
+    sqlite3_free(zErrMsg);
+    retval = 1;
+  }
+  else
+  {
+    fprintf(stdout, "JSON inserted successfully\n");
+  }
+
+  sqlite3_close(db);
+}
+
 connect()
 {
   sqlite3 *db;
@@ -47,7 +107,7 @@ connect()
   int retval = 0;
   if (rc)
   {
-    fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+    fprintf(stdout, "Can't open database: %s\n", sqlite3_errmsg(db));
     retval = 1;
   }
   else
