@@ -6,14 +6,18 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 #include <stdio.h>
-#include <sqlite3.h>
+#include <string.h>
+#include "sqlite3.h"
+#include "jansson.h"
+/* Add your header comment here */
+// #include <sqlite3ext.h> /* Do not use <sqlite3.h>! */
 
 connect();
 create_table();
 insert();
 select();
 update();
-delete();
+delete ();
 json();
 
 int main(int argc, char *argv[])
@@ -29,8 +33,6 @@ int main(int argc, char *argv[])
   return 0;
 }
 
-
-
 static int callback(void *NotUsed, int argc, char **argv, char **azColName)
 {
   int i;
@@ -42,7 +44,29 @@ static int callback(void *NotUsed, int argc, char **argv, char **azColName)
   return 0;
 }
 
-json(){
+static int callback_json(void *NotUsed, int argc, char **argv, char **azColName)
+{
+  json_t *root;
+  json_error_t error;
+  for (int i = 0; i < argc; i++)
+  {
+    if (strcmp(azColName[i], "JSON") == 0)
+    {
+      root = json_loads(argv[i], 0, &error);
+      if (!root)
+      {
+        fprintf(stderr, "Error: on line %d: %s\n", error.line, error.text);
+      }
+      else
+        printf("%s\n", argv[i]);
+    }
+  }
+  printf("\n");
+  return 0;
+}
+
+json()
+{
   sqlite3 *db;
   char *zErrMsg = 0;
   int rc;
@@ -60,13 +84,25 @@ json(){
     fprintf(stdout, "Opened database successfully\n");
   }
 
-    /* Create SQL statement */
+  // rc = sqlite3_load_extension(db, "json1.dll", 0, &zErrMsg);
+  // if (rc != SQLITE_OK)
+  // {
+  //   fprintf(stderr, "SQL error: %s\n", zErrMsg);
+  //   sqlite3_free(zErrMsg);
+  //   retval = 1;
+  // }
+  // else
+  // {
+  //   fprintf(stdout, "Extnesion loaded successfully\n");
+  // }
+
+  /* Create SQL statement */
   sql = "CREATE TABLE IF NOT EXISTS JSONS("
         "ID INT PRIMARY KEY     NOT NULL,"
         "JSON           TEXT    NOT NULL);";
 
   /* Execute SQL statement */
-  rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
+  sqlite3_exec(db, sql, callback, 0, &zErrMsg);
   if (rc != SQLITE_OK)
   {
     fprintf(stderr, "SQL error: %s\n", zErrMsg);
@@ -78,7 +114,7 @@ json(){
     fprintf(stdout, "Table created successfully\n");
   }
 
- /* Create SQL statement */
+  /* Insert JSON item */
   sql = "INSERT INTO JSONS (ID,JSON) "
         "VALUES (1, '{\"id\":1}');";
   /* Execute SQL statement */
@@ -92,6 +128,20 @@ json(){
   else
   {
     fprintf(stdout, "JSON inserted successfully\n");
+  }
+
+  /* Select JSON item */
+  sql = "SELECT * from JSONS";
+  rc = sqlite3_exec(db, sql, callback_json, 0, &zErrMsg);
+  if (rc != SQLITE_OK)
+  {
+    fprintf(stderr, "SQL error: %s\n", zErrMsg);
+    sqlite3_free(zErrMsg);
+    retval = 1;
+  }
+  else
+  {
+    fprintf(stdout, "JSON fetched successfully\n");
   }
 
   sqlite3_close(db);
