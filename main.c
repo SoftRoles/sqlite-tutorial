@@ -59,6 +59,34 @@ static int callback_json(void *NotUsed, int argc, char **argv, char **azColName)
       }
       else
         printf("%s\n", argv[i]);
+      if (!json_is_object(root))
+      {
+        fprintf(stderr, "Error: string is not an json array\n");
+        json_decref(root);
+      }
+      else
+      {
+        const char *key;
+        json_t *value;
+
+        json_object_foreach(root, key, value)
+        {
+          printf("%s\n", key);
+          if (json_is_integer(value))
+            printf("%d\n", json_integer_value(value));
+          else if (json_is_real(value))
+            printf("%f\n", json_real_value(value));
+          // switch (json_typeof(value))
+          // {
+          // case JSON_INTEGER:
+          //   printf("%" JSON_INTEGER_FORMAT "\n", value);
+          // case JSON_REAL:
+          //   printf("%f\n", json_real_value(value));
+          // default:
+          //   printf("Undetermined.\n");
+          // }
+        }
+      }
     }
   }
   printf("\n");
