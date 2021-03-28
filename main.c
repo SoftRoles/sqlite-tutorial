@@ -144,7 +144,9 @@ json()
 
   /* Insert JSON item */
   sql = "INSERT INTO JSONS (ID,JSON) "
-        "VALUES (1, '{\"id\":1}');";
+        "VALUES (3, '{\"id\":1}');"
+        "INSERT INTO JSONS (ID,JSON) "
+        "VALUES (2, '{\"id\":1.2}');";
   /* Execute SQL statement */
   rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
   if (rc != SQLITE_OK)
